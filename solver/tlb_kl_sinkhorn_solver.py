@@ -1,16 +1,16 @@
 import torch
 from solver.utils_pytorch import l2_distortion, grad_l2_distortion
 import numpy as np
-import timeout_decorator
+import time
 
 class TLBSinkhornSolver(object):
 
-    def __init__(self, nits, nits_sinkhorn, gradient=False, tol=1e-7, tol_sinkhorn=1e-7):
+    def __init__(self, nits, nits_sinkhorn, tol=1e-7, tol_sinkhorn=1e-7, timeout=3600):
         self.nits = nits
         self.nits_sinkhorn = nits_sinkhorn
-        self.gradient = gradient
         self.tol = tol
         self.tol_sinkhorn = tol_sinkhorn
+        self.timeout = timeout
 
     @staticmethod
     def rescale_mass_plan(pi, gamma, a, Cx, b, Cy, rho, eps):
@@ -128,12 +128,15 @@ class TLBSinkhornSolver(object):
             pi = ((u[:, None] + v[None, :] - T) / eps).exp() * a[:, None] * b[None, :]
         return u, v, pi
     
-    @timeout_decorator.timeout(30)
     def tlb_sinkhorn(self, a, Cx, b, Cy, rho, eps, init=None, weights=None):
         # Initialize plan and local cost
         pi = self.init_plan(a, b, init=init)
         ug, vg, up, vp = None, None, None, None
-        for i in range(self.nits):
+        
+        endtime = time.time() + self.timeout
+        
+        i = 0
+        while i < self.nits and time.time() < endtime:
             pi_prev = pi.clone()
             Tp = self.compute_local_cost(pi, a, Cx, b, Cy, rho, eps, weights)
             mp = pi.sum()
@@ -143,8 +146,13 @@ class TLBSinkhornSolver(object):
             mg = gamma.sum()
             up, vp, pi = self.sinkhorn_procedure(Tg, up, vp, a, b, mg * rho, mg * eps)
             pi = (mg / pi.sum()).sqrt() * pi
+            print((pi - pi_prev).abs().max().item())
+            #if np.isnan((pi - pi_prev).abs().max().item()):
+            #    print(pi)
             if (pi - pi_prev).abs().max().item() < self.tol:
                 break
+            i += 1
+        print(i)
         return pi, gamma
 
     def ugw_sinkhorn(self, a, Cx, b, Cy, rho, eps, init=None):

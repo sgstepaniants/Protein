@@ -140,7 +140,7 @@ domainToCath, cathToDomain = makeCodeDicts(protein_data[:, 1], protein_data[:, 2
 # choose two proteins to compare
 # very similar
 ind1 = 16
-ind2 = 17
+ind2 = 16
 
 # very different
 #ind1 = 2
@@ -152,6 +152,11 @@ cath1 = cath_codes[ind1][0]
 cath2 = cath_codes[ind2][0]
 D1 = geodists[ind1]
 D2 = geodists[ind2]
+
+# normalize distance matrices
+const = np.sqrt(np.sqrt(np.mean(D1**2)) * np.sqrt(np.mean(D2**2)))
+D1 = D1 / const
+D2 = D2 / const
 
 plt.figure(1)
 plt.title('Protein 1 Geodesic Distances \n (Domain: ' + dom1 + ', CATH: ' + cath1 + ')', fontweight='bold')
@@ -196,7 +201,7 @@ ent = 1e-1    # entropic regularization, controls width of coupling band
 #coupling = ot.gromov.gromov_wasserstein(D1, D2, mu1, mu2, 'square_loss')
 
 # POT entropic GW
-coupling = ot.gromov.entropic_gromov_wasserstein(D1, D2, mu1, mu2, 'square_loss', ent)
+#coupling = ot.gromov.entropic_gromov_wasserstein(D1, D2, mu1, mu2, 'square_loss', ent)
 
 # POT partial GW (only transfer a fixed m amount of mass)
 #coupling = ot.partial.partial_gromov_wasserstein(D1, D2, mu1, mu2, m=0.5)
@@ -212,10 +217,10 @@ coupling = ot.gromov.entropic_gromov_wasserstein(D1, D2, mu1, mu2, 'square_loss'
 #coupling = gamma * np.outer(mu1, mu2)
 
 # Peyre et al. unbalanced GW
-#solver = TLBSinkhornSolver(nits=500, nits_sinkhorn=1000, tol=1e-3, tol_sinkhorn=1e-5)
-#coupling, gamma = solver.tlb_sinkhorn(torch.from_numpy(mu1), torch.from_numpy(D1),
-#                                      torch.from_numpy(mu2), torch.from_numpy(D2), rho, ent)
-#coupling = coupling.numpy()
+solver = TLBSinkhornSolver(nits=50, nits_sinkhorn=1000, tol=1e-10, tol_sinkhorn=1e-7)
+coupling, gamma = solver.tlb_sinkhorn(torch.from_numpy(mu1), torch.from_numpy(D1),
+                                      torch.from_numpy(mu2), torch.from_numpy(D2), rho, ent)
+coupling = coupling.numpy()
 
 # post-process the coupling
 #thresh = np.max(coupling)
@@ -238,5 +243,5 @@ print('Coupling Mass: ' + str(mass))
 # compute GW cost for inferred coupling
 constD, hD1, hD2 = ot.gromov.init_matrix(D1, D2, mu1, mu2, loss_fun='square_loss')
 cost = ot.gromov.gwloss(constD, hD1, hD2, coupling)
-cost = cost / (np.max(D1) * np.max(D2) * mass**2)
+cost = cost / (mass**2)
 print('Adjusted GW Cost: ' + str(cost))

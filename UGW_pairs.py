@@ -301,7 +301,7 @@ if path.exists(outname):
     masses = results['masses']
 
 #bad_inds = []
-bad_inds = np.where(diams == math.inf)
+bad_inds = np.where(diams == math.inf)[0]
 #bad_inds = [25, 76, 89]
 #bad_inds = [15, 25, 65, 76, 89]
 #bad_inds = [15, 25, 38, 65, 76, 88, 89, 94, 99]
@@ -432,7 +432,7 @@ for code in codeDict:
 true_k = len(np.unique(true_labels[filtered_inds]))
 
 # get classification of proteins from k-medoids clustering
-k = 21
+k = 25
 medoid_inds, labelDict = kMedoids(filtered_GWdists, k)
 GW_labels = np.zeros(numfiltered, dtype=int)
 for i in range(k):
@@ -468,7 +468,7 @@ for coldomain in fatcat_pvals.keys():
             rowind = domainToCath[rowdomain][0][0]
             fatcat_dists[rowind, colind] = arr[i]
 
-# symmetriz the FATCAT p-value matrix
+# symmetrize the FATCAT p-value matrix
 i_lower = np.tril_indices(numproteins, -1)
 fatcat_dists[i_lower] = fatcat_dists.T[i_lower]
 

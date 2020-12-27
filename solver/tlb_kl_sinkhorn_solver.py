@@ -136,7 +136,7 @@ class TLBSinkhornSolver(object):
         endtime = time.time() + self.timeout
         
         i = 0
-        while i < self.nits and time.time() < endtime:
+        while i < self.nits:
             pi_prev = pi.clone()
             Tp = self.compute_local_cost(pi, a, Cx, b, Cy, rho, eps, weights)
             mp = pi.sum()
@@ -149,6 +149,9 @@ class TLBSinkhornSolver(object):
             print((pi - pi_prev).abs().max().item())
             #if np.isnan((pi - pi_prev).abs().max().item()):
             #    print(pi)
+            if time.time() < endtime:
+                print('UGW time out')
+                break
             if (pi - pi_prev).abs().max().item() < self.tol:
                 break
             i += 1

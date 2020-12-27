@@ -190,8 +190,8 @@ mu2 = np.ones(num_atoms2) / num_atoms2
 
 
 # Parameters
-rho = 1e2      # Peyre et al. mass constraint parameter
-ent = 1e-1    # entropic regularization, controls width of coupling band
+rho = 4e-2      # Peyre et al. mass constraint parameter
+ent = 8e-4    # entropic regularization, controls width of coupling band
 #eta = 1e-1  # learning rate of Solomon et al. GW implementation above
 
 
@@ -201,7 +201,7 @@ ent = 1e-1    # entropic regularization, controls width of coupling band
 #coupling = ot.gromov.gromov_wasserstein(D1, D2, mu1, mu2, 'square_loss')
 
 # POT entropic GW
-#coupling = ot.gromov.entropic_gromov_wasserstein(D1, D2, mu1, mu2, 'square_loss', ent)
+coupling = ot.gromov.entropic_gromov_wasserstein(D1, D2, mu1, mu2, 'square_loss', ent)
 
 # POT partial GW (only transfer a fixed m amount of mass)
 #coupling = ot.partial.partial_gromov_wasserstein(D1, D2, mu1, mu2, m=0.5)
@@ -217,10 +217,11 @@ ent = 1e-1    # entropic regularization, controls width of coupling band
 #coupling = gamma * np.outer(mu1, mu2)
 
 # Peyre et al. unbalanced GW
-solver = TLBSinkhornSolver(nits=50, nits_sinkhorn=1000, tol=1e-10, tol_sinkhorn=1e-7)
-coupling, gamma = solver.tlb_sinkhorn(torch.from_numpy(mu1), torch.from_numpy(D1),
-                                      torch.from_numpy(mu2), torch.from_numpy(D2), rho, ent)
-coupling = coupling.numpy()
+#print('UGW')
+#solver = TLBSinkhornSolver(nits=50, nits_sinkhorn=1000, tol=1e-10, tol_sinkhorn=1e-7)
+#coupling, gamma = solver.tlb_sinkhorn(torch.from_numpy(mu1), torch.from_numpy(D1),
+#                                      torch.from_numpy(mu2), torch.from_numpy(D2), rho, ent)
+#coupling = coupling.numpy()
 
 # post-process the coupling
 #thresh = np.max(coupling)

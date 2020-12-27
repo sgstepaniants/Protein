@@ -1,7 +1,9 @@
 .DS_Store
+solver/.DS_Store
 ProteinData0.mat
 ProteinData1.mat
 ProteinData2.mat
 ProteinData3.mat
 ProteinData4.mat
 ProteinData_CA.mat
+unbalanced_GW
